@@ -38,10 +38,10 @@
 	#include <sys/types.h>
 	#include <fcntl.h>
 	#include <unistd.h>
-	#ifdef OSX
+	#if OSX || __EMSCRIPTEN__
 		#include <limits.h>
 	#else
-		#include <limits.h>
+		#include <linux/limits.h>
 	#endif
 	#include <sys/time.h>
 #endif

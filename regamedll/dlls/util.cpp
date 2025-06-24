@@ -1474,7 +1474,7 @@ NOXREF BOOL UTIL_IsValidEntity(edict_t *pent)
 
 void UTIL_PrecacheOther(const char *szClassname)
 {
-	edict_t *pent = CREATE_NAMED_ENTITY(QString(ALLOC_STRING(szClassname)));
+	edict_t *pent = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
 	if (FNullEnt(pent))
 	{
 		ALERT(at_console, "NULL Ent in UTIL_PrecacheOther classname `%s`\n", szClassname);

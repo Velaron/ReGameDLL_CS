@@ -275,7 +275,7 @@ int AddAmmoNameToAmmoRegistry(const char *szAmmoname)
 // Precaches the weapon and queues the weapon info for sending to clients
 void UTIL_PrecacheOtherWeapon(const char *szClassname)
 {
-	edict_t *pEdict = CREATE_NAMED_ENTITY(QString(ALLOC_STRING(szClassname)));
+	edict_t *pEdict = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
 	if (FNullEnt(pEdict))
 	{
 		ALERT(at_console, "NULL Ent in UTIL_PrecacheOtherWeapon classname `%s`\n", szClassname);
