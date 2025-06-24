@@ -35,6 +35,43 @@ cvar_t cv_hostage_stop  = { "hostage_stop", "0", FCVAR_SERVER, 0.0f, nullptr };
 CHostageManager *g_pHostages = nullptr;
 int g_iHostageNumber = 0;
 
+#include <string.h>
+#include <stdbool.h>
+#include <alloca.h>
+#include <sys/stat.h>
+
+// Equivalent of Q_strlen
+#define Q_strlen(str) strlen(str)
+
+void COM_FixSlashes( char *pname )
+{
+	while(( pname = Q_strchr( pname, '\\' )))
+		*pname = '/';
+}
+
+// Slashes fix-up (converts backslashes to forward slashes)
+void CopyAndFixSlashes( char *p, const char *in, size_t size )
+{
+	Q_strncpy( p, in, size );
+	COM_FixSlashes( p );
+}
+
+bool FS_FileExists(const char *path, bool checkInPak) {
+    struct stat st;
+    return stat(path, &st) == 0;
+}
+
+#include <emscripten/emscripten.h>
+
+bool FileExists(const char *path) {
+    const size_t p_size = Q_strlen(path) + 1;
+    char * const p = (char *)alloca(p_size);
+    CopyAndFixSlashes(p, path, p_size);
+
+
+    return FS_FileExists(p, false);
+}
+
 struct
 {
 	HostageChatterType type;
@@ -296,7 +333,7 @@ void CHostage::Precache()
 		if (++which > GOOFY_GUY)
 			which = REGULAR_GUY;
 
-		if (g_pFileSystem->FileExists(model))
+		if (FileExists(model))
 		{
 			pev->model = model;
 		}
@@ -1578,7 +1615,7 @@ void SimpleChatter::AddSound(HostageChatterType type, char *filename)
 
 	Q_snprintf(actualFilename, sizeof(actualFilename), "sound\\%s", filename);
 
-	if (!g_pFileSystem->FileExists(actualFilename))
+	if (!FileExists(actualFilename))
 		return;
 
 	chatter->file[chatter->count].filename = CloneString(filename);

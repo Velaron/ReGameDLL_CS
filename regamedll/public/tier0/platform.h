@@ -28,6 +28,10 @@
 
 #pragma once
 
+#ifdef __EMSCRIPTEN__
+#define __linux__
+#endif
+
 #include "osconfig.h"
 
 #include <malloc.h> // need this for _alloca

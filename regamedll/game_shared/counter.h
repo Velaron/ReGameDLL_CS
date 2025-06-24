@@ -41,7 +41,7 @@
 	#ifdef OSX
 		#include <limits.h>
 	#else
-		#include <linux/limits.h>
+		#include <limits.h>
 	#endif
 	#include <sys/time.h>
 #endif
