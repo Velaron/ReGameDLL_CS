@@ -38,7 +38,7 @@
 	#include <sys/types.h>
 	#include <fcntl.h>
 	#include <unistd.h>
-	#ifdef OSX
+	#if OSX || __EMSCRIPTEN__
 		#include <limits.h>
 	#else
 		#include <linux/limits.h>
