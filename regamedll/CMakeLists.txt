@@ -362,7 +362,10 @@ else()
 		target_compile_options(regamedll PRIVATE -fPIC -fvisibility=hidden)
 
 		target_link_options(regamedll PRIVATE
-				-sSIDE_MODULE=1
+				"-sSIDE_MODULE=1"
+				"-Oz"
+				"--closure 1"
+				"--minify-wasm-imports"
 		)
 	else()
 		add_library(regamedll MODULE ${appversion.sh})
