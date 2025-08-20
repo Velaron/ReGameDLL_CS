@@ -28,10 +28,7 @@
 
 #include "precompiled.h"
 #include <algorithm>
-
-#ifdef __APPLE__
 #include <random>
-#endif
 
 BotPhraseManager *TheBotPhrases = nullptr;
 CountdownTimer BotChatterInterface::m_encourageTimer;
