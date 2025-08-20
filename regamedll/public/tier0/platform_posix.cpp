@@ -30,20 +30,7 @@
 
 bool Plat_IsInDebugSession()
 {
-#if defined(OSX)
-	int mib[4];
-	struct kinfo_proc info;
-	size_t size;
-	mib[0] = CTL_KERN;
-	mib[1] = KERN_PROC;
-	mib[2] = KERN_PROC_PID;
-	mib[3] = getpid();
-	size = sizeof(info);
-	info.kp_proc.p_flag = 0;
-	sysctl(mib, 4, &info, &size, NULL, 0);
-	bool result = ((info.kp_proc.p_flag & P_TRACED) == P_TRACED);
-	return result;
-#elif defined(_LINUX)
+#if defined(_LINUX)
 	char s[256];
 	snprintf(s, 256, "/proc/%d/cmdline", getppid());
 	FILE *fp = fopen(s, "r");

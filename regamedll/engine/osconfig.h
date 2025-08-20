@@ -70,11 +70,13 @@
 	#include <ctype.h>
 	//#include <dirent.h>
 	#include <dlfcn.h>
+#if !defined(__APPLE__)
 	#include <elf.h>
+	#include <link.h>
+#endif
 	#include <errno.h>
 	#include <fcntl.h>
 	#include <limits.h>
-	#include <link.h>
 	#include <netdb.h>
 	#include <netinet/in.h>
 	#include <pthread.h>
@@ -84,7 +86,9 @@
 	#include <sys/stat.h>
 	#include <sys/time.h>
 	#include <sys/types.h>
+#if !defined(__APPLE__)
 	#include <sys/sysinfo.h>
+#endif
 	#include <unistd.h>
 #endif // _WIN32
 

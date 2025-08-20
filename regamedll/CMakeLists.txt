@@ -140,7 +140,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "
 	endif()
 endif()
 
-if (NOT DEBUG AND NOT ANDROID)
+if (NOT DEBUG AND NOT ANDROID AND NOT APPLE)
 	set(LINK_FLAGS "${LINK_FLAGS} \
 		-Wl,-gc-sections -Wl,--version-script=\"${PROJECT_SOURCE_DIR}/../version_script.lds\"")
 endif()
