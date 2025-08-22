@@ -354,7 +354,7 @@ if (CMAKE_BUILD_TYPE MATCHES Unittests)
 	set(LINK_FLAGS "${LINK_FLAGS} -no-pie -Wl,--no-export-dynamic")
 	add_executable(regamedll ${appversion.sh})
 else()
-	add_library(regamedll MODULE ${appversion.sh})
+	add_library(regamedll SHARED ${appversion.sh})
 endif()
 
 if (NOT TARGET appversion)
