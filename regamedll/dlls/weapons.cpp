@@ -2712,7 +2712,7 @@ void CArmoury::ArmouryTouch(CBaseEntity *pOther)
 #endif
 ))
 	{
-		if (pToucher->m_bHasPrimary)
+		if (pToucher->m_bHasPrimary || pToucher->HasShield())
 			return;
 
 		m_iCount--;
