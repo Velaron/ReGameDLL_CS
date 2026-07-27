@@ -152,6 +152,7 @@ extern cvar_t round_restart_delay;
 
 extern cvar_t showtriggers;
 extern cvar_t hostagehurtable;
+extern cvar_t hostagefear;
 extern cvar_t roundover;
 extern cvar_t forcerespawn;
 extern cvar_t show_radioicon;
@@ -217,6 +218,8 @@ extern cvar_t randomspawn;
 extern cvar_t playerid_showhealth;
 extern cvar_t playerid_field;
 extern cvar_t knockback;
+extern cvar_t knife_wall_sparks;
+extern cvar_t show_bomb_timer;
 
 #endif
 
