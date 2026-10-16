@@ -38,7 +38,7 @@
 	#include <sys/types.h>
 	#include <fcntl.h>
 	#include <unistd.h>
-	#ifdef __APPLE__
+	#ifndef __linux__
 		#include <limits.h>
 	#else
 		#include <linux/limits.h>
