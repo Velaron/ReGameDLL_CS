@@ -89,7 +89,9 @@
 	#include <sys/time.h>
 	#include <sys/types.h>
 #if !defined(__APPLE__)
+	#if defined(__linux__)
 	#include <sys/sysinfo.h>
+	#endif
 #else
 	#include <sys/sysctl.h>
 #endif
