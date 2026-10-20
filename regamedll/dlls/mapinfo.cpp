@@ -22,7 +22,9 @@ void CMapInfo::OnCreate()
 
 void CMapInfo::OnDestroy()
 {
-	g_pMapInfo = nullptr;
+	// Only the instance that owns the global may clear it.
+	if (g_pMapInfo == this)
+		g_pMapInfo = nullptr;
 }
 
 void CMapInfo::CheckMapInfo()

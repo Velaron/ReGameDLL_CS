@@ -1051,12 +1051,19 @@ void CFuncTrackTrain::StopSound()
 	// if sound playing, stop it
 	if (m_soundPlaying && pev->noise)
 	{
+#ifdef REGAMEDLL_FIXES
+		// Stop the sound through the engine sound API: SND_STOP is delivered as a reliable
+		// broadcast, while the event is PVS-filtered and can be missed by distant players,
+		// leaving the engine loop running on their side.
+		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), 0, 0, SND_STOP, PITCH_NORM);
+#else
 		unsigned short us_encode;
 		unsigned short us_sound = ((unsigned short)(m_sounds) & 0x0007) << 12;
 
 		us_encode = us_sound;
 
 		PLAYBACK_EVENT_FULL(FEV_RELIABLE | FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, us_encode, 0, 1, 0);
+#endif
 		EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "plats/ttrain_brake1.wav", m_flVolume, ATTN_NORM, 0, 100);
 	}
 
@@ -1070,19 +1077,40 @@ void CFuncTrackTrain::UpdateSound()
 
 #ifdef REGAMEDLL_FIXES
 	float flpitch = TRAIN_STARTPITCH + (Q_abs(pev->speed) * (TRAIN_MAXPITCH - TRAIN_STARTPITCH) / TRAIN_MAXSPEED);
+
+	// The engine sound API carries the pitch as a byte, keep it inside the intended range
+	if (flpitch > TRAIN_MAXPITCH)
+		flpitch = TRAIN_MAXPITCH;
+
+	// Never report the engine pitch as exactly PITCH_NORM: a looping sound that is
+	// re-pitched to 100 drops out of the client's pitch-shifting mixer back into the
+	// plain playback path, which then runs past the end of the wave and mixes in
+	// whatever sound follows it in the client's sound cache.
+	// Same guard as CFuncRotating::RampPitchVol() and CAmbientGeneric.
+	int ipitch = int(flpitch);
+	if (ipitch == PITCH_NORM)
+		ipitch = PITCH_NORM - 1;
 #else
 	float flpitch = TRAIN_STARTPITCH + (Q_abs(int(pev->speed)) * (TRAIN_MAXPITCH - TRAIN_STARTPITCH) / TRAIN_MAXSPEED);
+	int ipitch = int(flpitch);
 #endif
 
 	if (!m_soundPlaying)
 	{
 		// play startup sound for train
 		EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "plats/ttrain_start1.wav", m_flVolume, ATTN_NORM, 0, 100);
-		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), m_flVolume, ATTN_NORM, 0, int(flpitch));
+		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), m_flVolume, ATTN_NORM, 0, ipitch);
 		m_soundPlaying = 1;
 	}
 	else
 	{
+#ifdef REGAMEDLL_FIXES
+		// Update pitch/volume through the engine sound API instead of the client event:
+		// the event packs the pitch as pitch / 10 into 6 bits, so the range is quantized
+		// to steps of 10 and everything in [100, 110) arrives as PITCH_NORM. The event is
+		// also PVS-filtered, while the sound itself is started with a reliable broadcast.
+		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), m_flVolume, ATTN_NORM, SND_CHANGE_PITCH | SND_CHANGE_VOL, ipitch);
+#else
 		// update pitch
 		// EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), m_flVolume, ATTN_NORM, SND_CHANGE_PITCH, int(flpitch));
 
@@ -1099,6 +1127,7 @@ void CFuncTrackTrain::UpdateSound()
 		us_encode = us_sound | us_pitch | us_volume;
 
 		PLAYBACK_EVENT_FULL(FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, us_encode, 0, 0, 0);
+#endif
 	}
 }
 

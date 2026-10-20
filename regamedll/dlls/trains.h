@@ -198,6 +198,10 @@ public:
 	Vector m_vSurfaceNormal;
 	Vector m_vVehicleDirection;
 	CBaseEntity *m_pDriver;
+#ifdef REGAMEDLL_FIXES
+	int m_iCollisionCount;
+	BOOL m_fEngineOn;
+#endif
 
 private:
 	unsigned short m_usAdjustPitch;

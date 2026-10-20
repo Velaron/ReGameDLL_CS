@@ -140,6 +140,7 @@ This means that plugins that do binary code analysis (Orpheu for example) probab
 | mp_stamina_restore_rate            | 0       | 0.0 | -            | Framerate (FPS), that used as reference when restoring stamina (fuser2) after jump. |
 | mp_logkills                        | 1       | 0   | 1            | Log kills.<br/>`0` disabled <br/>`1` enabled |
 | mp_jump_height                     | 45      | 0.0 | -            | Player jump height. |
+| mp_longjump_cooldown               | 0.0     | 0.0 | -            | Cooldown time (in seconds) between long jumps to prevent abuse.<br/>`0` disabled<br/>`>0` seconds before the player can long jump again. During cooldown, only a regular vertical jump is performed. |
 | bot_excellent_morale               | 0       | 0   | 1            | Bots always have great morale regardless of defeat or victory. |
 | mp_randomspawn                     | 0       | 0   | 1            | Random player spawns<br/>`0` disabled <br/>`1` enabled<br/>`NOTE`: Navigation `maps/.nav` file required |
 | mp_playerid_showhealth             | 1       | 0   | 2            | Player ID display mode.<br/>`0` don't show health<br/>`1` show health for teammates only (default CS behaviour)<br/>`2` show health for all players |

@@ -288,10 +288,17 @@ void CFuncVehicle::StopSound()
 {
 	if (m_soundPlaying && pev->noise)
 	{
+#ifdef REGAMEDLL_FIXES
+		// Stop the sound through the engine sound API: SND_STOP is delivered as a reliable
+		// broadcast, while the event is PVS-filtered and can be missed by distant players,
+		// leaving the engine loop running on their side.
+		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), 0, 0, SND_STOP, PITCH_NORM);
+#else
 		unsigned short us_sound = ((unsigned short)m_sounds & 0x0007) << 12;
 		unsigned short us_encode = us_sound;
 
 		PLAYBACK_EVENT_FULL(FEV_RELIABLE | FEV_UPDATE, edict(), m_usAdjustPitch, 0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, us_encode, 0, 1, 0);
+#endif
 	}
 
 	m_soundPlaying = 0;
@@ -311,6 +318,19 @@ void CFuncVehicle::UpdateSound()
 	if (flpitch > 200)
 		flpitch = 200;
 
+#ifdef REGAMEDLL_FIXES
+	// Never report the engine pitch as exactly PITCH_NORM: a looping sound that is
+	// re-pitched to 100 drops out of the client's pitch-shifting mixer back into the
+	// plain playback path, which then runs past the end of the wave and mixes in
+	// whatever sound follows it in the client's sound cache.
+	// Same guard as CFuncRotating::RampPitchVol() and CAmbientGeneric.
+	int ipitch = int(flpitch);
+	if (ipitch == PITCH_NORM)
+		ipitch = PITCH_NORM - 1;
+#else
+	int ipitch = int(flpitch);
+#endif
+
 	if (!m_soundPlaying)
 	{
 		if (m_sounds < 5)
@@ -318,17 +338,25 @@ void CFuncVehicle::UpdateSound()
 			EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "plats/vehicle_brake1.wav", m_flVolume, ATTN_NORM, 0, 100);
 		}
 
-		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), m_flVolume, ATTN_NORM, 0, int(flpitch));
+		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), m_flVolume, ATTN_NORM, 0, ipitch);
 		m_soundPlaying = 1;
 	}
 	else
 	{
+#ifdef REGAMEDLL_FIXES
+		// Update pitch/volume through the engine sound API instead of the client event:
+		// the event packs the pitch as pitch / 10 into 6 bits, so the range is quantized
+		// to steps of 10 and everything in [100, 110) arrives as PITCH_NORM. The event is
+		// also PVS-filtered, while the sound itself is started with a reliable broadcast.
+		EMIT_SOUND_DYN(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise), m_flVolume, ATTN_NORM, SND_CHANGE_PITCH | SND_CHANGE_VOL, ipitch);
+#else
 		unsigned short us_sound = ((unsigned short)(m_sounds) & 0x0007) << 12;
 		unsigned short us_pitch = ((unsigned short)(flpitch / 10.0) & 0x003F) << 6;
 		unsigned short us_volume = ((unsigned short)(m_flVolume * 40) & 0x003F);
 		unsigned short us_encode = us_sound | us_pitch | us_volume;
 
 		PLAYBACK_EVENT_FULL(FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, us_encode, 0, 0, 0);
+#endif
 	}
 }
 
@@ -441,6 +469,9 @@ void CFuncVehicle::CollisionDetection()
 
 				if (tr.flFraction == 1.0f)
 				{
+#ifdef REGAMEDLL_FIXES
+					m_iCollisionCount = 0;
+#endif
 					return;
 				}
 			}
@@ -454,6 +485,16 @@ void CFuncVehicle::CollisionDetection()
 			}
 			else if (tr.vecPlaneNormal.z < 0.65 || tr.fStartSolid)
 			{
+#ifdef REGAMEDLL_FIXES
+				m_iCollisionCount++;
+				if (m_iCollisionCount >= 3)
+				{
+					pev->speed = 0;
+					pev->velocity = g_vecZero;
+					pev->avelocity = g_vecZero;
+				}
+				else
+#endif
 				pev->speed *= -1.0;
 			}
 			else
@@ -472,6 +513,16 @@ void CFuncVehicle::CollisionDetection()
 			}
 			else if (tr.vecPlaneNormal[2] < 0.65f || tr.fStartSolid)
 			{
+#ifdef REGAMEDLL_FIXES
+				m_iCollisionCount++;
+				if (m_iCollisionCount >= 3)
+				{
+					pev->speed = 0;
+					pev->velocity = g_vecZero;
+					pev->avelocity = g_vecZero;
+				}
+				else
+#endif
 				pev->speed *= -1.0;
 			}
 			else
@@ -502,6 +553,9 @@ void CFuncVehicle::CollisionDetection()
 
 				if (tr.flFraction == 1.0f)
 				{
+#ifdef REGAMEDLL_FIXES
+					m_iCollisionCount = 0;
+#endif
 					return;
 				}
 			}
@@ -516,6 +570,16 @@ void CFuncVehicle::CollisionDetection()
 		}
 		else if (tr.vecPlaneNormal.z < 0.65 || tr.fStartSolid)
 		{
+#ifdef REGAMEDLL_FIXES
+			m_iCollisionCount++;
+			if (m_iCollisionCount >= 3)
+			{
+				pev->speed = 0;
+				pev->velocity = g_vecZero;
+				pev->avelocity = g_vecZero;
+			}
+			else
+#endif
 			pev->speed *= -1.0;
 		}
 		else
@@ -598,6 +662,12 @@ void CFuncVehicle::Next()
 		m_iTurnAngle = 0;
 		pev->avelocity = g_vecZero;
 		pev->velocity = g_vecZero;
+
+#ifdef REGAMEDLL_FIXES
+		// Ensure idle sound is playing when vehicle stops
+		if (m_fEngineOn && !m_soundPlaying)
+			UpdateSound();
+#endif
 
 		SetThink(&CFuncVehicle::Next);
 		NextThink(pev->ltime + time, TRUE);
@@ -805,8 +875,13 @@ void CFuncVehicle::Find()
 	UTIL_SetOrigin(pev, nextPos);
 	NextThink(pev->ltime + 0.1, FALSE);
 	SetThink(&CFuncVehicle::Next);
+#ifdef REGAMEDLL_FIXES
+	if (m_fEngineOn)
+		pev->speed = m_startSpeed;
+#else
 	pev->speed = m_startSpeed;
 	UpdateSound();
+#endif
 }
 
 void CFuncVehicle::NearestPath()
@@ -902,6 +977,10 @@ void CFuncVehicle::Spawn()
 
 	m_dir = 1;
 	m_flTurnStartTime = -1;
+#ifdef REGAMEDLL_FIXES
+	m_iCollisionCount = 0;
+	m_fEngineOn = FALSE;
+#endif
 
 	if (FStringNull(pev->target))
 	{
@@ -946,6 +1025,10 @@ void CFuncVehicle::Restart()
 	m_flTurnStartTime = -1;
 	m_flUpdateSound = -1;
 	m_pDriver = nullptr;
+#ifdef REGAMEDLL_FIXES
+	m_iCollisionCount = 0;
+	m_fEngineOn = FALSE;
+#endif
 
 	if (FStringNull(pev->target))
 	{
@@ -954,6 +1037,9 @@ void CFuncVehicle::Restart()
 
 	UTIL_SetOrigin(pev, pev->oldorigin);
 	STOP_SOUND(ENT(pev), CHAN_STATIC, (char *)STRING(pev->noise));
+#ifdef REGAMEDLL_FIXES
+	m_soundPlaying = 0;
+#endif
 
 	NextThink(pev->ltime + 0.1f, FALSE);
 	SetThink(&CFuncVehicle::Find);

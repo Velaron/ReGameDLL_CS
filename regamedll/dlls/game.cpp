@@ -10,6 +10,7 @@ cvar_t *g_psv_stopspeed   = nullptr;
 cvar_t *g_psv_stepsize    = nullptr;
 cvar_t *g_psv_clienttrace = nullptr;
 cvar_t *g_psv_maxvelocity = nullptr;
+cvar_t *g_psv_zmax        = nullptr;
 
 cvar_t displaysoundlist      = { "displaysoundlist", "0", 0, 0.0f, nullptr };
 cvar_t timelimit             = { "mp_timelimit", "0", FCVAR_SERVER, 0.0f, nullptr };
@@ -174,6 +175,7 @@ cvar_t assist_damage_threshold           = { "mp_assist_damage_threshold", "40",
 cvar_t freezetime_duck                   = { "mp_freezetime_duck", "1", 0, 1.0f, nullptr };
 cvar_t freezetime_jump                   = { "mp_freezetime_jump", "1", 0, 1.0f, nullptr };
 cvar_t jump_height                       = { "mp_jump_height", "45", FCVAR_SERVER, 45.0f, nullptr };
+cvar_t longjump_cooldown                 = { "mp_longjump_cooldown", "0.0", 0, 0.0f, nullptr };
 
 cvar_t hostages_rescued_ratio  = { "mp_hostages_rescued_ratio", "1.0", 0, 1.0f, nullptr };
 
@@ -272,6 +274,7 @@ void EXT_FUNC GameDLLInit()
 	g_psv_stepsize    = CVAR_GET_POINTER("sv_stepsize");
 	g_psv_clienttrace = CVAR_GET_POINTER("sv_clienttrace");
 	g_psv_maxvelocity = CVAR_GET_POINTER("sv_maxvelocity");
+	g_psv_zmax        = CVAR_GET_POINTER("sv_zmax");
 
 	CVAR_REGISTER(&displaysoundlist);
 	CVAR_REGISTER(&timelimit);
@@ -469,6 +472,7 @@ void EXT_FUNC GameDLLInit()
 	CVAR_REGISTER(&freezetime_duck);
 	CVAR_REGISTER(&freezetime_jump);
 	CVAR_REGISTER(&jump_height);
+	CVAR_REGISTER(&longjump_cooldown);
 	CVAR_REGISTER(&defuser_allocation);
 	CVAR_REGISTER(&location_area_info);
 	CVAR_REGISTER(&chat_loc_fallback);

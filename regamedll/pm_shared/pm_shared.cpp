@@ -2762,25 +2762,40 @@ void EXT_FUNC __API_HOOK(PM_Jump)()
 		// UNDONE: note this should be based on forward angles, not current velocity.
 		if (cansuperjump && (pmove->cmd.buttons & IN_DUCK) && pmove->flDuckTime > 0 && Length(pmove->velocity) > 50)
 		{
-			pmove->punchangle[0] = -5.0f;
-
-#ifdef REGAMEDLL_API
-			if (pmoveplayer->m_flLongJumpForce > 0.0)
+#ifdef REGAMEDLL_ADD
+			if (pmove->fuser4 > 0.0f)
 			{
-				fvel = pmoveplayer->m_flLongJumpForce;
+				pmove->velocity[2] = PM_JumpHeight(false);
 			}
 			else
 #endif
 			{
-				fvel = PLAYER_LONGJUMP_SPEED * 1.6f;
-			}
+				pmove->punchangle[0] = -5.0f;
 
-			for (int i = 0; i < 2; i++)
-			{
-				pmove->velocity[i] = pmove->forward[i] * fvel;
-			}
+#ifdef REGAMEDLL_API
+				if (pmoveplayer->m_flLongJumpForce > 0.0)
+				{
+					fvel = pmoveplayer->m_flLongJumpForce;
+				}
+				else
+#endif
+				{
+					fvel = PLAYER_LONGJUMP_SPEED * 1.6f;
+				}
 
-			pmove->velocity[2] = PM_JumpHeight(true);
+				for (int i = 0; i < 2; i++)
+				{
+					pmove->velocity[i] = pmove->forward[i] * fvel;
+				}
+
+				pmove->velocity[2] = PM_JumpHeight(true);
+#ifdef REGAMEDLL_ADD
+				if (longjump_cooldown.value > 0.0f)
+				{
+					pmove->fuser4 = longjump_cooldown.value * 1000.0f;
+				}
+#endif
+			}
 		}
 		else
 		{
@@ -3112,6 +3127,18 @@ void PM_ReduceTimers()
 			pmove->fuser2 = 0;
 		}
 	}
+
+#ifdef REGAMEDLL_ADD
+	if (pmove->fuser4 > 0.0)
+	{
+		pmove->fuser4 -= pmove->cmd.msec;
+
+		if (pmove->fuser4 < 0.0)
+		{
+			pmove->fuser4 = 0;
+		}
+	}
+#endif
 }
 
 qboolean PM_ShouldDoSpectMode()

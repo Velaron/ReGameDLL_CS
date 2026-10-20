@@ -43,7 +43,7 @@ endif()
 
 # do not strip debuginfo during link
 if (NOT DEBUG)
-	set(LINK_FLAGS "-s")
+	set(LINK_FLAGS "")
 endif()
 
 # add -m32 flag only on 64-bit systems, if building for 64-bit wasn't enabled with XASH_COMPAT
@@ -435,6 +435,10 @@ set(LINK_FLAGS "${LINK_FLAGS} -Wl,-rpath,'$ORIGIN/.'")
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 4 AND NOT ANDROID)
 	set(LINK_FLAGS "${LINK_FLAGS} -L${PROJECT_SOURCE_DIR}/lib/linux32")
+endif()
+
+if (UNIX AND NOT APPLE AND NOT ANDROID)
+	set(LINK_FLAGS "${LINK_FLAGS} -Wl,-z,notext")
 endif()
 
 if (NOT MSVC)
